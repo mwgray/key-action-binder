@@ -48,9 +48,9 @@ package com.zehfernando.input.binding {
 		private var bindings:Vector.<BindingInfo>;						// Actual existing bindings, their action, and whether they're activated or not
 		private var actionsActivations:Object;							// How many activations each action has (key string with ActivationInfo instance)
 
-		private var _onActionActivated:SimpleSignal;					// Receives: action:String
-		private var _onActionDeactivated:SimpleSignal;					// Receives: action:String
-		private var _onActionValueChanged:SimpleSignal;					// Receives: action:String, value:Number (0-1)
+		private var _onActionActivated:SimpleSignal;					// Receives: action:*
+		private var _onActionDeactivated:SimpleSignal;					// Receives: action:*
+		private var _onActionValueChanged:SimpleSignal;					// Receives: action:*, value:Number (0-1)
 		private var _onDevicesChanged:SimpleSignal;
 		private var _onRecentDevice:SimpleSignal;						//  Receives: recentDevice:GameInputDevice
 
@@ -261,7 +261,7 @@ package com.zehfernando.input.binding {
 			return filteredControls;
 		}
 
-		private function prepareAction(__action:String):void {
+		private function prepareAction(__action:*):void {
 			// Pre-emptively creates the list of activations for this action
 			if (!actionsActivations.hasOwnProperty(__action)) actionsActivations[__action] = new ActivationInfo();
 		}
@@ -731,7 +731,7 @@ package com.zehfernando.input.binding {
 		 * @see flash.ui.Keyboard
 		 * @see #removeKeyboardActionBinding()
 		 */
-		public function addKeyboardActionBinding(__action:String, __keyCode:int = KEY_CODE_ANY, __keyLocation:int = KEY_LOCATION_ANY):void {
+		public function addKeyboardActionBinding(__action:*, __keyCode:int = KEY_CODE_ANY, __keyLocation:int = KEY_LOCATION_ANY):void {
 
 			// Create a binding to be verified later
 			bindings.push(new BindingInfo(__action, new KeyboardBinding(__keyCode, __keyLocation)));
@@ -751,7 +751,7 @@ package com.zehfernando.input.binding {
 		 * @see flash.ui.Keyboard
 		 * @see #addGamepadActionBinding()
 		 */
-		public function removeKeyboardActionBinding(__action:String, __keyCode:int = KEY_CODE_ANY, __keyLocation:int = KEY_LOCATION_ANY):void {
+		public function removeKeyboardActionBinding(__action:*, __keyCode:int = KEY_CODE_ANY, __keyLocation:int = KEY_LOCATION_ANY):void {
 			var bindingsToRemove:Vector.<BindingInfo> = new <BindingInfo>[];
 
 			for each(var binding:BindingInfo in bindings) {
@@ -816,7 +816,7 @@ package com.zehfernando.input.binding {
 		 * @see #getActionValue()
 		 * @see #removeGamepadActionBinding()
 		 */
-		public function addGamepadActionBinding(__action:String, __controlId:String, __gamepadIndex:int = GAMEPAD_INDEX_ANY):void {
+		public function addGamepadActionBinding(__action:*, __controlId:String, __gamepadIndex:int = GAMEPAD_INDEX_ANY):void {
 			// Create a binding to be verified later
 			bindings.push(new BindingInfo(__action, new GamepadBinding(__controlId, __gamepadIndex)));
 			prepareAction(__action);
@@ -838,7 +838,7 @@ package com.zehfernando.input.binding {
 		 * @see #isActionActivated()
 		 * @see #getActionValue()
 		 */
-		public function removeGamepadActionBinding(__action:String, __controlId:String, __gamepadIndex:int = GAMEPAD_INDEX_ANY):void {
+		public function removeGamepadActionBinding(__action:*, __controlId:String, __gamepadIndex:int = GAMEPAD_INDEX_ANY):void {
 			var bindingsToRemove:Vector.<BindingInfo> = new <BindingInfo>[];
 			for each(var binding:BindingInfo in bindings) {
 				if(binding.action == __action) {
@@ -887,7 +887,7 @@ package com.zehfernando.input.binding {
 		 * @see #addGamepadActionBinding()
 		 * @see #isActionActivated()
 		 */
-		public function getActionValue(__action:String, __gamepadIndex:int = -1):Number {
+		public function getActionValue(__action:*, __gamepadIndex:int = -1):Number {
 			return actionsActivations.hasOwnProperty(__action) ? (actionsActivations[__action] as ActivationInfo).getValue(__gamepadIndex) : 0;
 		}
 
@@ -923,7 +923,7 @@ package com.zehfernando.input.binding {
 		 * @see #getActionValue()
 		 * @see http://zehfernando.com/2013/keyactionbinder-updates-time-sensitive-activations-new-constants/
 		 */
-		public function isActionActivated(__action:String, __timeToleranceSeconds:Number = 0, __gamepadIndex:int = -1):Boolean {
+		public function isActionActivated(__action:*, __timeToleranceSeconds:Number = 0, __gamepadIndex:int = -1):Boolean {
 			return actionsActivations.hasOwnProperty(__action) && (actionsActivations[__action] as ActivationInfo).getNumActivations(__timeToleranceSeconds, __gamepadIndex) > 0;
 		}
 
@@ -948,7 +948,7 @@ package com.zehfernando.input.binding {
 		 * @see GamepadControls
 		 * @see #isActionActivated()
 		 */
-		public function consumeAction(__action:String):void {
+		public function consumeAction(__action:*):void {
 			// Deactivates all current actions of an action (forcing a button to be pressed again)
 			if (actionsActivations.hasOwnProperty(__action)) (actionsActivations[__action] as ActivationInfo).resetActivations();
 		}
@@ -1190,7 +1190,7 @@ class ActivationInfo {
 		activationGamepadIndexes.length = 0;
 	}
 
-	public function addSensitiveValue(__actionId:String, __value:Number, __gamepadIndex:int = -1):void {
+	public function addSensitiveValue(__actionId:*, __value:Number, __gamepadIndex:int = -1):void {
 		sensitiveValues[__actionId] = __value;
 		sensitiveValuesGamepadIndexes[__actionId] = __gamepadIndex;
 	}
@@ -1212,7 +1212,7 @@ class ActivationInfo {
 class BindingInfo {
 
 	// Properties
-	public var action:String;
+	public var action:*;
 	public var binding:IBinding;
 	public var isActivated:Boolean;
 	public var lastActivatedTime:uint;
@@ -1220,7 +1220,7 @@ class BindingInfo {
 	// ================================================================================================================
 	// CONSTRUCTOR ----------------------------------------------------------------------------------------------------
 
-	public function BindingInfo(__action:String = "", __binding:IBinding = null) {
+	public function BindingInfo(__action:* = null, __binding:IBinding = null) {
 		action = __action;
 		binding = __binding;
 		isActivated = false;
