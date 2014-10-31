@@ -627,12 +627,12 @@ package com.zehfernando.input.binding {
 			}
 		}
 
-        private function set recentDevice(value:GameInputDevice):void {
-            if(_recentDevice != value) {
-                _recentDevice = value;
-                _onRecentDevice.dispatch(value);
-            }
-        }
+		private function set recentDevice(value:GameInputDevice):void {
+			if(_recentDevice != value) {
+				_recentDevice = value;
+				_onRecentDevice.dispatch(value);
+			}
+		}
 
 		// ================================================================================================================
 		// PUBLIC INTERFACE -----------------------------------------------------------------------------------------------
