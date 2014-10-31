@@ -28,6 +28,8 @@ package com.zehfernando.input.binding {
 		public static const KEY_CODE_ANY:uint = 81653812;
 		public static const KEY_LOCATION_ANY:uint = 81653813;
 
+		public static const KEYBOARD_DEVICE:GameInputDevice=null; // is set to null, since gamepads are non-null (and you can't create/subclass a GameInputDevice)
+
 		[Embed(source = "controllers.json", mimeType='application/octet-stream')]
 		private static const JSON_CONTROLLERS:Class;
 
@@ -40,6 +42,7 @@ package com.zehfernando.input.binding {
 		private var _isRunning:Boolean;
 		private var _alwaysPreventDefault:Boolean;						// If true, prevent action by other keys all the time (e.g. menu key)
 		private var _maintainPlayerPositions:Boolean;					// Whether it tries to keep player positions or not
+		private var _recentDevice:GameInputDevice;						// the most recent device that sent an event
 
 		// Instances
 		private var bindings:Vector.<BindingInfo>;						// Actual existing bindings, their action, and whether they're activated or not
@@ -49,6 +52,7 @@ package com.zehfernando.input.binding {
 		private var _onActionDeactivated:SimpleSignal;					// Receives: action:String
 		private var _onActionValueChanged:SimpleSignal;					// Receives: action:String, value:Number (0-1)
 		private var _onDevicesChanged:SimpleSignal;
+		private var _onRecentDevice:SimpleSignal;						//  Receives: recentDevice:GameInputDevice
 
 		private var gameInputDevices:Vector.<GameInputDevice>;
 		private var gameInputDeviceIds:Vector.<String>;
@@ -218,6 +222,7 @@ package com.zehfernando.input.binding {
 			_onActionDeactivated = new SimpleSignal();
 			_onActionValueChanged = new SimpleSignal();
 			_onDevicesChanged = new SimpleSignal();
+			_onRecentDevice = new SimpleSignal();
 
 			gameInputDevices = new Vector.<GameInputDevice>();
 			gameInputDeviceIds = new Vector.<String>();
@@ -473,7 +478,10 @@ package com.zehfernando.input.binding {
 						activationInfo.addActivation(filteredControls[i], __gamepadIndex);
 
 						// Dispatches signal
-						if (activationInfo.getNumActivations() == 1) _onActionActivated.dispatch(filteredControls[i].action);
+						if (activationInfo.getNumActivations() == 1) {
+							recentDevice = gameInputDevices[__gamepadIndex]
+							_onActionActivated.dispatch(filteredControls[i].action);
+						}
 					} else {
 						// Marks as released
 
@@ -481,9 +489,12 @@ package com.zehfernando.input.binding {
 						activationInfo.removeActivation(filteredControls[i]);
 
 						// Dispatches signal
-						if (activationInfo.getNumActivations() == 0) _onActionDeactivated.dispatch(filteredControls[i].action);
+						if (activationInfo.getNumActivations() == 0) {
+							recentDevice = gameInputDevices[__gamepadIndex];
+							_onActionDeactivated.dispatch(filteredControls[i].action);
 						}
 					}
+				}
 			}
 		}
 
@@ -519,6 +530,7 @@ package com.zehfernando.input.binding {
 
 					// Dispatches signal
 					if ((actionsActivations[filteredKeys[i].action] as ActivationInfo).getNumActivations() == 1) {
+						recentDevice = KEYBOARD_DEVICE;
 						_onActionValueChanged.dispatch(filteredKeys[i].action, 1);
 						_onActionActivated.dispatch(filteredKeys[i].action);
 					}
@@ -554,6 +566,7 @@ package com.zehfernando.input.binding {
 
 				// Dispatches signal
 				if ((actionsActivations[filteredKeys[i].action] as ActivationInfo).getNumActivations() == 0) {
+					recentDevice = KEYBOARD_DEVICE;
 					_onActionValueChanged.dispatch(filteredKeys[i].action, 0);
 					_onActionDeactivated.dispatch(filteredKeys[i].action);
 				}
@@ -614,6 +627,12 @@ package com.zehfernando.input.binding {
 			}
 		}
 
+        private function set recentDevice(value:GameInputDevice):void {
+            if(_recentDevice != value) {
+                _recentDevice = value;
+                _onRecentDevice.dispatch(value);
+            }
+        }
 
 		// ================================================================================================================
 		// PUBLIC INTERFACE -----------------------------------------------------------------------------------------------
@@ -954,6 +973,10 @@ package com.zehfernando.input.binding {
 			return _onDevicesChanged;
 		}
 
+		public function get onRecentDevice():SimpleSignal {
+			return _onRecentDevice;
+		}
+
 		/**
 		 * Toggles whether KeyActionBinder tries to maintain each player's gamepad index based on the unique id of each
 		 * device.
@@ -1105,6 +1128,7 @@ package com.zehfernando.input.binding {
 import com.zehfernando.input.binding.KeyActionBinder;
 import flash.utils.Dictionary;
 import flash.utils.getTimer;
+
 /**
  * Information listing all activated bindings of a given action
  */
@@ -1368,4 +1392,3 @@ class AutoGamepadControlKeyInfo {
 	public function AutoGamepadControlKeyInfo() {
 	}
 }
-
