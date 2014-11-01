@@ -627,6 +627,10 @@ package com.zehfernando.input.binding {
 			}
 		}
 
+		public function getRecentDevice():GameInputDevice {
+			return _recentDevice;
+		}
+
 		private function set recentDevice(value:GameInputDevice):void {
 			if(_recentDevice != value) {
 				_recentDevice = value;
