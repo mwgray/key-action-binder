@@ -11,7 +11,9 @@ package com.zehfernando.input.binding {
 	import flash.ui.GameInputDevice;
 	import flash.ui.KeyLocation;
 	import flash.ui.Keyboard;
+	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
+
 	/**
 	 * @author zeh fernando
 	 */
@@ -46,7 +48,7 @@ package com.zehfernando.input.binding {
 
 		// Instances
 		private var bindings:Vector.<BindingInfo>;						// Actual existing bindings, their action, and whether they're activated or not
-		private var actionsActivations:Object;							// How many activations each action has (key string with ActivationInfo instance)
+		private var actionsActivations:Dictionary;						// How many activations each action has (key string with ActivationInfo instance)
 
 		private var _onActionActivated:SimpleSignal;					// Receives: action:*
 		private var _onActionDeactivated:SimpleSignal;					// Receives: action:*
@@ -216,7 +218,7 @@ package com.zehfernando.input.binding {
 			_alwaysPreventDefault = true;
 			_maintainPlayerPositions = false;
 			bindings = new Vector.<BindingInfo>();
-			actionsActivations = {};
+			actionsActivations = new Dictionary();
 
 			_onActionActivated = new SimpleSignal();
 			_onActionDeactivated = new SimpleSignal();
@@ -263,7 +265,7 @@ package com.zehfernando.input.binding {
 
 		private function prepareAction(__action:*):void {
 			// Pre-emptively creates the list of activations for this action
-			if (!actionsActivations.hasOwnProperty(__action)) actionsActivations[__action] = new ActivationInfo();
+			if (!(__action in actionsActivations)) actionsActivations[__action] = new ActivationInfo();
 		}
 
 		private function refreshGameInputDeviceList():void {
@@ -911,7 +913,7 @@ package com.zehfernando.input.binding {
 		 * @see #isActionActivated()
 		 */
 		public function getActionValue(__action:*, __gamepadIndex:int = -1):Number {
-			return actionsActivations.hasOwnProperty(__action) ? (actionsActivations[__action] as ActivationInfo).getValue(__gamepadIndex) : 0;
+			return __action in actionsActivations ? (actionsActivations[__action] as ActivationInfo).getValue(__gamepadIndex) : 0;
 		}
 
 		/**
@@ -947,7 +949,7 @@ package com.zehfernando.input.binding {
 		 * @see http://zehfernando.com/2013/keyactionbinder-updates-time-sensitive-activations-new-constants/
 		 */
 		public function isActionActivated(__action:*, __timeToleranceSeconds:Number = 0, __gamepadIndex:int = -1):Boolean {
-			return actionsActivations.hasOwnProperty(__action) && (actionsActivations[__action] as ActivationInfo).getNumActivations(__timeToleranceSeconds, __gamepadIndex) > 0;
+			return __action in actionsActivations && (actionsActivations[__action] as ActivationInfo).getNumActivations(__timeToleranceSeconds, __gamepadIndex) > 0;
 		}
 
 		/**
@@ -973,7 +975,7 @@ package com.zehfernando.input.binding {
 		 */
 		public function consumeAction(__action:*):void {
 			// Deactivates all current actions of an action (forcing a button to be pressed again)
-			if (actionsActivations.hasOwnProperty(__action)) (actionsActivations[__action] as ActivationInfo).resetActivations();
+			if (__action in actionsActivations) (actionsActivations[__action] as ActivationInfo).resetActivations();
 		}
 
 
