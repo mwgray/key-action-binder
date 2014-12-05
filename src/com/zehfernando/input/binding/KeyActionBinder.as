@@ -34,6 +34,7 @@ package com.zehfernando.input.binding {
 
 		[Embed(source = "controllers.json", mimeType='application/octet-stream')]
 		private static const JSON_CONTROLLERS:Class;
+		public static const NEGATED_AXIS_VALUE:Number = 0.13337;
 
 		// List of all auto-configurable gamepads
 		private static var knownGamepadPlatforms:Vector.<AutoPlatformInfo>;
@@ -452,20 +453,20 @@ package com.zehfernando.input.binding {
 		private function interpretGameInputControlChanges(__mappedId:String, __mappedValue:Number, __mappedMin:Number, __mappedMax:Number, __gamepadIndex:int, __checkDual:Boolean=true):void {
 			// Decides what to do once the value of a game input device control has changed
 
-            if(__checkDual) {
+			if(__checkDual) {
 
-                var isDual:Boolean = __mappedMin < 0;
+				var isDual:Boolean = __mappedMin < 0;
 
-                if(isDual) {
-                    // make another call for ids +/-
-                    var controlId:String = __mappedId + (__mappedValue < 0 ? "-" : "+");
-                    interpretGameInputControlChanges(controlId, __mappedValue, __mappedMin, __mappedMax, __gamepadIndex, false);
+				if(isDual) {
+					// make another call for ids +/-
+					var controlId:String = __mappedId + (__mappedValue < 0 ? "-" : "+");
+					interpretGameInputControlChanges(controlId, __mappedValue, __mappedMin, __mappedMax, __gamepadIndex, false);
 
-                    // 'fake' a deactivate on the other value by passing in a value below the threshold
-                    var otherControlId:String = __mappedId + (__mappedValue < 0 ? "+" : "-");
-    				interpretGameInputControlChanges(otherControlId, __mappedValue < 0 ? 0.13337 : -0.13337, __mappedMin, __mappedMax, __gamepadIndex, false);
-                }
-            }
+					// 'fake' a deactivate on the other value by passing in a value below the threshold
+					var otherControlId:String = __mappedId + (__mappedValue < 0 ? "+" : "-");
+					interpretGameInputControlChanges(otherControlId, __mappedValue < 0 ? NEGATED_AXIS_VALUE : -NEGATED_AXIS_VALUE, __mappedMin, __mappedMax, __gamepadIndex, false);
+				}
+			}
 
 			var filteredControls:Vector.<BindingInfo> = filterGamepadControls(__mappedId, __gamepadIndex);
 			var activationInfo:ActivationInfo;
